@@ -1,4 +1,4 @@
-class ResistorCircuit(ResistorArray):
+class ResistorCircuit():
     """
     Class representing circuit with resistors.
     Circuit may have only 1 power source.
@@ -21,13 +21,14 @@ class ResistorCircuit(ResistorArray):
         @param wires: tuple of wires resistor is connected to. must be 2 unique wires.
         """
         r = _Resistor(resistance=resistance, wires=wires)
-        self.resistors.append(resistors)
+        self.resistors.append(r)
     def print(self):
         """
         display circuit in human readable format
         """
-        for r, wires in resistors:
-            print(f"Resistor {r.resistance} ohms, connected to wires {wires}")
+        print(f"Voltage source {self.ps_voltage} V, connected to wires {self.ps_wires}")
+        for r in self.resistors:
+            print(f"Resistor {r.resistance} ohms, connected to wires {r.wires}")
 
 
 class _Resistor():

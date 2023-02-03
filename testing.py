@@ -13,23 +13,34 @@ class ResistorCircuit():
         """
         self.ps_voltage = ps_voltage
         self.ps_wires = ps_wires
-        self.resistors = []
+        self.resistors = dict()
     def add_resistor(self, resistance, wires):
         """
         add resistor to circuit.
         @param resistance: resistance of resistor
         @param wires: tuple of wires resistor is connected to. must be 2 unique wires.
         """
+        wires = frozenset(wires)
         r = _Resistor(resistance=resistance, wires=wires)
-        self.resistors.append(r)
+        if wires not in self.resistors.keys():
+            self.resistors[wires] = []
+        self.resistors[wires].append(r)
     def print(self):
         """
         display circuit in human readable format
         """
         print(f"Voltage source {self.ps_voltage} V, connected to wires {self.ps_wires}")
-        for r in self.resistors:
-            print(f"Resistor {r.resistance} ohms, connected to wires {r.wires}")
-
+        for wire_set in self.resistors:
+            for r in self.resistors[wire_set]:
+                print(r)
+    def combine_all_parallel_resistors(self):
+        """
+        combine every resistor with the same wire set (parallel resistors)
+        """
+        for wire_set in self.resistors:
+            if len(self.resistors[wire_set]) > 1:
+                req = equivalent_resistor_parallel([r for r in self.resistors[wire_set]], wire_set)
+                self.resistors[wire_set] = [req]
 
 class _Resistor():
     """
@@ -37,9 +48,11 @@ class _Resistor():
     """
     def __init__(self, resistance: float, wires):
         self.resistance = resistance
+        if (type(wires) != set) and (len(wires) != 2):
+            raise Exception("Resistor wires must be 2 element set")
         self.wires = wires
     def __repr__(self):
-        return f"Resistor: {self.resistance} Ohms"
+        return f"Resistor: {self.resistance:.2f} Ohms connected to wires {self.wires}"
     def __sub__(self, other):
         """
         - symbolizes resistors in series
@@ -53,19 +66,26 @@ class _Resistor():
         """
         return equivalent_resistor_parallel([self, other])
 
-def equivalent_resistor_series(resistors):
+def equivalent_resistor_series(resistors, wires):
     resistances = [r.resistance for r in resistors]
-    return Resistor(sum(resistances))
+    return _Resistor(sum(resistances), wires)
 
-def equivalent_resistor_parallel(resistors):
+def equivalent_resistor_parallel(resistors, wires):
     inv_resistances = [1/r.resistance for r in resistors]
-    return Resistor(1 / sum(inv_resistances))
+    return _Resistor(1 / sum(inv_resistances), wires)
 
 
 
 # driver
 if __name__ == "__main__":
     circuit = ResistorCircuit(ps_voltage=120)
-    circuit.add_resistor(10, (1,2))
-    circuit.add_resistor(20, (2,3))
+    circuit.add_resistor(10, {1,2})
+    circuit.add_resistor(20, {1,2})
+    circuit.add_resistor(30, {1,3})
+    circuit.add_resistor(30, {1,3})
+    circuit.add_resistor(40, {2,1})
+    circuit.add_resistor(50, {2,3})
+    circuit.print()
+
+    circuit.combine_all_parallel_resistors()
     circuit.print()

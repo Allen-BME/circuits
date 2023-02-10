@@ -41,6 +41,11 @@ class ResistorCircuit():
             if len(self.resistors[wire_set]) > 1:
                 req = equivalent_resistor_parallel([r for r in self.resistors[wire_set]], wire_set)
                 self.resistors[wire_set] = [req]
+    def find_equivalent_resistor(self):
+        """
+        combine all resistors in the circuit into 1 equivalent resistor
+        """
+
 
 class _Resistor():
     """
